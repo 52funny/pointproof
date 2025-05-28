@@ -24,7 +24,7 @@ func Setup(N int) *Pointproof {
 	g2 := bls12381.G2Generator()
 
 	// g^alpha, g^alpha^2, ..., g^alpha^N, g^alpha^N+2, ..., g^alpha^2N
-	p1 := make([]bls12381.G1, 2*N-1)
+	p1 := make([]bls12381.G1, 2*N)
 	p2 := make([]bls12381.G2, N)
 
 	// secret alpha
@@ -43,7 +43,7 @@ func Setup(N int) *Pointproof {
 	// skip g^alpha^N+1, current is g^alpha^N+2
 	t.Mul(t, alpha)
 
-	for i := N; i < 2*N-1; i++ {
+	for i := N + 1; i < 2*N; i++ {
 		p1[i].ScalarMult(t, g1)
 		t.Mul(t, alpha)
 	}
@@ -104,7 +104,7 @@ func (pp *Pointproof) Proof(message []bls12381.Scalar, i int) *bls12381.G1 {
 			continue
 		}
 		t := new(bls12381.G1)
-		t.ScalarMult(&message[j], &pp.P1[pp.N+1-i+j-1])
+		t.ScalarMult(&message[j], &pp.P1[pp.N-i+j])
 		sum.Add(sum, t)
 	}
 	return sum
@@ -175,7 +175,7 @@ func (pp *Pointproof) Verify(c *bls12381.G1, sets []int, message []bls12381.Scal
 
 		t := new(bls12381.G2)
 		// must substract 2 because the index of P2 is 0-based
-		t.ScalarMult(ti, &pp.P2[pp.N+1-s-2])
+		t.ScalarMult(ti, &pp.P2[pp.N-1-s])
 
 		g2Sum.Add(g2Sum, t)
 
